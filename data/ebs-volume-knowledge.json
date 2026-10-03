@@ -1,0 +1,247 @@
+{
+  "metadata": {
+    "project": "Amazon EBS Volume Type Selection and Performance Study",
+    "region": "ap-south-1",
+    "availability_zone": "ap-south-1b",
+    "benchmark_instance": "t3.micro",
+    "pricing_status": "TBD - region-specific pricing to be added",
+    "last_verified": "2026-09-27"
+  },
+
+  "volume_types": {
+
+    "gp3": {
+      "category": "general_purpose_ssd",
+      "min_size_gib": 1,
+      "max_size_gib": 65536,
+      "baseline_iops": 3000,
+      "max_iops": 80000,
+      "baseline_throughput_mib_s": 125,
+      "max_throughput_mib_s": 2000,
+      "performance_model": "provisioned_iops_and_throughput",
+      "workload_classes": [
+        "general_purpose",
+        "random_io",
+        "mixed_io",
+        "transactional"
+      ],
+      "access_patterns": [
+        "random",
+        "mixed",
+        "sequential"
+      ],
+      "latency_class": "low",
+      "pricing": {
+        "storage": "TBD",
+        "provisioned_iops": "TBD",
+        "provisioned_throughput": "TBD"
+      },
+      "benchmark": {
+        "size_gib": 20,
+        "configured_iops": 3000,
+        "configured_throughput_mib_s": 125,
+        "random_read": {
+          "iops": 3099,
+          "throughput_mib_s": 12.1,
+          "avg_latency_ms": 5.16,
+          "p95_ms": 5.43,
+          "p99_ms": 5.71
+        },
+        "random_write": {
+          "iops": 3099,
+          "throughput_mib_s": 12.1,
+          "avg_latency_ms": 5.16,
+          "p95_ms": 5.43,
+          "p99_ms": 5.76
+        },
+        "sequential_read": {
+          "iops": 129,
+          "throughput_mib_s": 129,
+          "avg_latency_ms": 123.66,
+          "p95_ms": 123,
+          "p99_ms": 161
+        },
+        "sequential_write": {
+          "iops": 129,
+          "throughput_mib_s": 129,
+          "avg_latency_ms": 123.67,
+          "p95_ms": 162.3,
+          "p99_ms": 174
+        },
+        "mixed_70_30": {
+          "read_iops": 2174,
+          "write_iops": 924,
+          "total_iops": 3098,
+          "read_throughput_mib_s": 8.50,
+          "write_throughput_mib_s": 3.61,
+          "read_avg_latency_ms": 5.095,
+          "write_avg_latency_ms": 5.31
+        }
+      }
+    },
+
+    "gp2": {
+      "category": "general_purpose_ssd",
+      "min_size_gib": 1,
+      "max_size_gib": 16384,
+      "baseline_iops_formula": "max(100, min(3 * size_gib, 16000))",
+      "burst_iops": 3000,
+      "max_iops": 16000,
+      "max_throughput_mib_s": 250,
+      "performance_model": "size_dependent_with_burst",
+      "workload_classes": [
+        "general_purpose",
+        "random_io",
+        "mixed_io"
+      ],
+      "access_patterns": [
+        "random",
+        "mixed",
+        "sequential"
+      ],
+      "latency_class": "low",
+      "pricing": {
+        "storage": "TBD"
+      },
+      "benchmark": {
+        "size_gib": 20,
+        "random_read": {
+          "iops": 3099,
+          "throughput_mib_s": 12.1,
+          "avg_latency_ms": 5.16,
+          "p95_ms": 5.407,
+          "p99_ms": 5.56
+        },
+        "random_write": {
+          "iops": 3099,
+          "throughput_mib_s": 12.1,
+          "avg_latency_ms": 5.16,
+          "p95_ms": 5.407,
+          "p99_ms": 5.69
+        },
+        "sequential_read": {
+          "iops": 128,
+          "throughput_mib_s": 128,
+          "avg_latency_ms": 124.86,
+          "p95_ms": 156.7,
+          "p99_ms": 175
+        },
+        "sequential_write": {
+          "iops": 132,
+          "throughput_mib_s": 132,
+          "avg_latency_ms": 120.82,
+          "p95_ms": 160.3,
+          "p99_ms": 165.7
+        },
+        "mixed_70_30": {
+          "read_iops": 2174,
+          "write_iops": 924,
+          "total_iops": 3098,
+          "read_throughput_mib_s": 8.50,
+          "write_throughput_mib_s": 3.61,
+          "read_avg_latency_ms": 5.082,
+          "write_avg_latency_ms": 5.344
+        }
+      }
+    },
+
+    "io2": {
+      "category": "provisioned_iops_ssd",
+      "min_size_gib": 4,
+      "max_size_gib": 65536,
+      "min_iops": 100,
+      "max_iops": 256000,
+      "max_throughput_mib_s": 4000,
+      "performance_model": "provisioned_iops",
+      "workload_classes": [
+        "high_iops",
+        "transactional",
+        "database",
+        "latency_sensitive",
+        "business_critical"
+      ],
+      "access_patterns": [
+        "random",
+        "mixed"
+      ],
+      "latency_class": "very_low",
+      "instance_constraint": "Actual performance is bounded by EC2 instance EBS capability",
+      "pricing": {
+        "storage": "TBD",
+        "provisioned_iops": "TBD"
+      },
+      "benchmark": {
+        "tested": false,
+        "reason": "t3.micro may become the performance bottleneck"
+      }
+    },
+
+    "st1": {
+      "category": "throughput_optimized_hdd",
+      "min_size_gib": 125,
+      "max_size_gib": 16384,
+      "max_throughput_mib_s": 500,
+      "performance_model": "throughput_and_burst_credits",
+      "workload_classes": [
+        "large_sequential",
+        "etl",
+        "log_processing",
+        "data_warehouse"
+      ],
+      "access_patterns": [
+        "sequential"
+      ],
+      "latency_class": "higher",
+      "small_random_io": "not_recommended",
+      "instance_constraint": "Throughput is limited by the smaller of volume and instance capability",
+      "pricing": {
+        "storage": "TBD"
+      },
+      "benchmark": {
+        "tested": false,
+        "reason": "125 GiB minimum and t3.micro instance limitation"
+      }
+    },
+
+    "sc1": {
+      "category": "cold_hdd",
+      "min_size_gib": 125,
+      "max_size_gib": 16384,
+      "max_throughput_mib_s": 250,
+      "performance_model": "throughput_and_burst_credits",
+      "workload_classes": [
+        "large_sequential",
+        "cold_data",
+        "infrequent_access"
+      ],
+      "access_patterns": [
+        "sequential"
+      ],
+      "latency_class": "higher",
+      "small_random_io": "not_recommended",
+      "instance_constraint": "Throughput is limited by the smaller of volume and instance capability",
+      "pricing": {
+        "storage": "TBD"
+      },
+      "benchmark": {
+        "tested": false,
+        "reason": "125 GiB minimum and t3.micro instance limitation"
+      }
+    }
+  },
+
+  "benchmark_methodology": {
+    "filesystem": "ext4",
+    "file_size_gib": 1,
+    "runtime_seconds": 30,
+    "runs_per_workload": 3,
+    "iodepth": 16,
+    "numjobs": 1,
+    "direct_io": true,
+    "ioengine": "libaio",
+    "random_block_size": "4k",
+    "sequential_block_size": "1M",
+    "mixed_read_ratio_percent": 70,
+    "mixed_write_ratio_percent": 30
+  }
+}

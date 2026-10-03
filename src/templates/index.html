@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <title>EBS Volume Selection System</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f3f4f6;
+            color: #1f2937;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .header {
+            background: #232f3e;
+            color: white;
+            padding: 30px;
+            border-radius: 14px;
+            margin-bottom: 25px;
+        }
+
+        .header h1 {
+            margin: 0 0 10px;
+            font-size: 32px;
+        }
+
+        .header p {
+            margin: 0;
+            color: #d1d5db;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .card h2 {
+            margin-top: 0;
+            color: #232f3e;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 7px;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 7px;
+            font-size: 15px;
+        }
+
+        button {
+            margin-top: 25px;
+            padding: 13px 28px;
+            background: #ff9900;
+            color: #111827;
+            border: none;
+            border-radius: 7px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+    background: #ec8b00;
+}
+
+.dashboard-btn {
+    display: inline-block;
+    margin: 10px 0 20px 0;
+    padding: 10px 18px;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: 600;
+    color: white;
+    background: #2563eb;
+}
+
+.dashboard-btn:hover {
+    background: #1d4ed8;
+}
+
+        .recommendation {
+            border-left: 6px solid #16a34a;
+            background: #f0fdf4;
+        }
+
+        .recommendation-name {
+            font-size: 38px;
+            font-weight: bold;
+            color: #15803d;
+            margin: 10px 0;
+        }
+
+        .requirements {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+
+        .metric {
+            background: #f8fafc;
+            padding: 18px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .metric-title {
+            font-size: 13px;
+            color: #6b7280;
+        }
+
+        .metric-value {
+            font-size: 21px;
+            font-weight: bold;
+            margin-top: 7px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 14px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        th {
+            background: #f8fafc;
+        }
+
+        .eligible {
+            color: #15803d;
+            font-weight: bold;
+        }
+
+        .rejected {
+            color: #dc2626;
+            font-weight: bold;
+        }
+
+        .measured {
+            color: #15803d;
+            font-weight: bold;
+        }
+
+        .not-measured {
+            color: #ca8a04;
+            font-weight: bold;
+        }
+
+        .environment {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .limits {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .env-box {
+            background: #f8fafc;
+            padding: 18px;
+            border-radius: 8px;
+        }
+
+        .env-label {
+            color: #6b7280;
+            font-size: 13px;
+        }
+
+        .env-value {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .reason {
+            font-size: 14px;
+            color: #4b5563;
+            margin-top: 4px;
+        }
+
+        .score {
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        @media (max-width: 800px) {
+
+            .form-grid,
+            .requirements,
+            .environment {
+                grid-template-columns: 1fr;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- HEADER -->
+
+    <div class="header">
+
+        <h1>EBS Volume Selection System</h1>
+
+        <p>
+            Workload-based Amazon EBS volume selection using
+            performance requirements, cost and benchmark evidence.
+        </p>
+
+    </div>
+
+
+    <!-- INPUT CARD -->
+
+    <div class="card">
+
+        <h2>Workload Requirements</h2>
+
+        <form method="POST">
+
+            <div class="form-grid">
+
+                <div>
+
+                    <label>Workload</label>
+
+                    <select name="workload">
+
+                        <option value="random"
+                            {% if request.form.get('workload') == 'random' or not request.form.get('workload') %}
+                            selected
+                            {% endif %}>
+                            Random
+                        </option>
+
+                        <option value="sequential"
+                            {% if request.form.get('workload') == 'sequential' %}
+                            selected
+                            {% endif %}>
+                            Sequential
+                        </option>
+
+                        <option value="mixed"
+                            {% if request.form.get('workload') == 'mixed' %}
+                            selected
+                            {% endif %}>
+                            Mixed
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div>
+
+                    <label>Required IOPS</label>
+
+                    <input
+                        type="number"
+                        name="iops"
+                        value="{{ request.form.get('iops', '10000') }}"
+                        min="1"
+                        required
+                    >
+
+                </div>
+
+
+                <div>
+
+                    <label>Required Throughput (MiB/s)</label>
+
+                    <input
+                        type="number"
+                        name="throughput"
+                        value="{{ request.form.get('throughput', '200') }}"
+                        min="1"
+                        step="0.1"
+                        required
+                    >
+
+                </div>
+
+
+                <div>
+
+                    <label>Latency Sensitivity</label>
+
+                    <select name="latency">
+
+                        <option value="low"
+                            {% if request.form.get('latency') == 'low' %}
+                            selected
+                            {% endif %}>
+                            Low
+                        </option>
+
+                        <option value="high"
+                            {% if request.form.get('latency') == 'high' or not request.form.get('latency') %}
+                            selected
+                            {% endif %}>
+                            High
+                        </option>
+
+                        <option value="very_high"
+                            {% if request.form.get('latency') == 'very_high' %}
+                            selected
+                            {% endif %}>
+                            Very High
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div>
+
+                    <label>Storage Capacity (GiB)</label>
+
+                    <input
+                        type="number"
+                        name="capacity"
+                        value="{{ request.form.get('capacity', '100') }}"
+                        min="1"
+                        required
+                    >
+
+                </div>
+
+            </div>
+
+
+            <button type="submit">
+                ANALYZE WORKLOAD
+            </button>
+
+        </form>
+
+    </div>
+
+
+    {% if result %}
+
+    <!-- RECOMMENDATION -->
+
+    <div class="card recommendation">
+
+        <h2>Recommendation</h2>
+        {% if dashboard_url %}
+        <a href="{{ dashboard_url }}" class="dashboard-btn">View Benchmark Analysis</a>
+        {% endif %}
+
+
+        <div class="recommendation-name">
+            {{ result.recommendation }}
+        </div>
+
+        <p>
+            Selected by the recommendation engine using
+            technical eligibility, cost, workload suitability,
+            latency suitability and benchmark evidence.
+        </p>
+
+    </div>
+
+
+    <!-- REQUIREMENTS -->
+
+    <div class="card">
+
+        <h2>Requirements</h2>
+
+        <div class="requirements">
+
+            <div class="metric">
+
+                <div class="metric-title">
+                    Workload
+                </div>
+
+                <div class="metric-value">
+                    {{ result.requirements.workload }}
+                </div>
+
+            </div>
+
+
+            <div class="metric">
+
+                <div class="metric-title">
+                    Required IOPS
+                </div>
+
+                <div class="metric-value">
+                    {{ result.requirements.required_iops }}
+                </div>
+
+            </div>
+
+
+            <div class="metric">
+
+                <div class="metric-title">
+                    Throughput
+                </div>
+
+                <div class="metric-value">
+                    {{ result.requirements.required_throughput_mib_s }}
+                </div>
+
+            </div>
+
+
+            <div class="metric">
+
+                <div class="metric-title">
+                    Capacity
+                </div>
+
+                <div class="metric-value">
+                    {{ result.requirements.capacity_gib }} GiB
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- CANDIDATES -->
+
+    <div class="card">
+
+        <h2>Candidate Analysis</h2>
+
+        <table>
+
+            <thead>
+
+                <tr>
+                    <th>Volume</th>
+                    <th>Technical Status</th>
+                    <th>Decision</th>
+                    <th>Score</th>
+                    <th>Estimated Cost</th>
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                {% for analysis in result.candidate_analysis %}
+
+                <tr>
+
+                    <td>
+                        <strong>{{ volume }}</strong>
+                    </td>
+
+                    <td>
+
+                        {% if analysis.technical_status == "eligible" %}
+
+                            <span class="eligible">
+                                ✓ Eligible
+                            </span>
+
+                        {% else %}
+
+                            <span class="rejected">
+                                ✗ Ineligible
+                            </span>
+
+                        {% endif %}
+
+                    </td>
+
+
+                    <td>
+
+                        {% if analysis.decision == 'selected' %}
+
+                            <span class="eligible">
+                                ✓ Selected
+                            </span>
+
+                        {% elif analysis.decision == 'eligible_not_selected' %}
+
+                            Eligible
+
+                        {% else %}
+
+                            —
+
+                        {% endif %}
+
+                    </td>
+
+
+                    <td>
+
+                        {% if analysis.decision_score is not none %}
+
+                            <span class="score">
+                                {{ analysis.decision_score }}
+                            </span>
+
+                        {% else %}
+
+                            —
+
+                        {% endif %}
+
+                    </td>
+
+
+                    <td>
+
+                        {% if analysis.estimated_cost is not none %}
+
+                            ${{ "%.2f"|format(analysis.estimated_cost.total_monthly_cost_usd) }}
+
+                        {% else %}
+
+                            —
+                        {% endif %}
+
+                    </td>
+
+                </tr>
+
+
+                {% if analysis.reasons %}
+
+                <tr>
+
+                    <td></td>
+
+                    <td colspan="4">
+
+                        {% for reason in analysis.reasons %}
+
+                            <div class="reason">
+                                • {{ reason }}
+                            </div>
+
+                        {% endfor %}
+
+                    </td>
+
+                </tr>
+
+                {% endif %}
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+
+    <!-- SELECTED COST -->
+
+    {% if result.selected_cost %}
+
+    <div class="card">
+
+        <h2>Estimated Cost</h2>
+
+        <div class="metric">
+
+            <div class="metric-title">
+                {{ result.recommendation }} estimated monthly cost
+            </div>
+
+            <div class="metric-value">
+                ${{ "%.2f"|format(result.selected_cost.total_monthly_cost_usd) }}
+            </div>
+
+        </div>
+
+    </div>
+
+    {% endif %}
+
+
+    <!-- BENCHMARK -->
+
+    <div class="card">
+
+        <h2>Benchmark Evidence</h2>
+
+        <table>
+
+            <thead>
+
+                <tr>
+                    <th>Volume</th>
+                    <th>Evidence Status</th>
+                    <th>Source</th>
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                {% for volume, evidence in result.benchmark_evidence.items() %}
+
+                <tr>
+
+                    <td>
+                        <strong>{{ volume }}</strong>
+                    </td>
+
+                    <td>
+
+                        {% if evidence.available %}
+
+                            <span class="measured">
+                                ✓ Measured
+                            </span>
+
+                        {% else %}
+
+                            <span class="not-measured">
+                                ○ Not Measured
+                            </span>
+
+                        {% endif %}
+
+                    </td>
+
+                    <td>
+                        {{ evidence.source if evidence.source else "—" }}
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+{% if result.benchmark_environment %}
+
+    <!-- ENVIRONMENT -->
+
+    <div class="card">
+
+        <h2>Benchmark Environment</h2>
+
+        <div class="environment">
+
+            <div class="env-box">
+
+                <div class="env-label">
+                    EC2 Instance
+                </div>
+
+                <div class="env-value">
+                    {{ result.benchmark_environment.instance_type }}
+                </div>
+
+            </div>
+
+
+            <div class="env-box">
+
+                <div class="env-label">
+                    Region
+                </div>
+
+                <div class="env-value">
+                    {{ result.benchmark_environment.region }}
+                </div>
+
+            </div>
+
+
+            <div class="env-box">
+
+                <div class="env-label">
+                    Environment
+                </div>
+
+                <div class="env-value">
+                    Controlled Benchmark
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="limits">
+
+            <div class="env-box">
+
+                <div class="env-label">
+                    Maximum EBS IOPS
+                </div>
+
+                <div class="env-value">
+                    {{ "{:,}".format(result.benchmark_environment.max_ebs_iops) }}
+                </div>
+
+            </div>
+
+            <div class="env-box">
+
+                <div class="env-label">
+                    Maximum EBS Throughput
+                </div>
+
+                <div class="env-value">
+                    {{ result.benchmark_environment.max_ebs_throughput_mib_s }} MiB/s
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <p class="reason">
+            {{ result.benchmark_environment.note }}
+        </p>
+
+    </div>
+
+
+    {% endif %}
+
+    {% endif %}
+</div>
+
+</body>
+</html>
+

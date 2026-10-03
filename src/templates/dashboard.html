@@ -1,0 +1,1313 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <title>EBS Benchmark Dashboard</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f3f4f6;
+            color: #1f2937;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .header {
+            background: #232f3e;
+            color: white;
+            padding: 30px;
+            border-radius: 14px;
+            margin-bottom: 25px;
+        }
+
+        .header h1 {
+            margin: 0 0 10px;
+            font-size: 32px;
+        }
+
+        .header p {
+            color: #d1d5db;
+        }
+
+        .requirements {
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 10px;
+        }
+
+        .requirements h3 {
+            margin-top: 0;
+        }
+
+        .requirements-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+        }
+
+        .requirement-item {
+            background: rgba(255,255,255,0.08);
+            padding: 14px;
+            border-radius: 8px;
+        }
+
+        .requirement-label {
+            display: block;
+            color: #d1d5db;
+            font-size: 13px;
+            margin-bottom: 5px;
+        }
+
+        .requirement-value {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .card h2 {
+            margin-top: 0;
+            color: #232f3e;
+        }
+
+        .section-description {
+            color: #6b7280;
+            margin-bottom: 20px;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 14px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        th {
+            background: #f8fafc;
+        }
+
+        .volume {
+            font-weight: bold;
+        }
+
+        .gp2,
+        .gp3 {
+            font-weight: bold;
+        }
+
+        .note {
+            color: #6b7280;
+            font-size: 14px;
+            margin-top: 15px;
+            line-height: 1.5;
+        }
+
+        .back {
+            display: inline-block;
+            margin-bottom: 20px;
+            text-decoration: none;
+            color: #2563eb;
+            font-weight: bold;
+        }
+
+        .requirement-card {
+            border-left: 5px solid #2563eb;
+        }
+
+        .environment-card {
+            border-left: 5px solid #ff9900;
+        }
+
+        .mixed-note {
+            padding: 14px;
+            background: #f8fafc;
+            border-radius: 8px;
+            color: #6b7280;
+            margin-bottom: 18px;
+            line-height: 1.5;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <a href="/" class="back">
+        ← Back to Recommendation System
+    </a>
+
+
+    <!-- HEADER -->
+
+    <div class="header">
+
+        <h1>EBS Benchmark Dashboard</h1>
+
+        <p>
+            Controlled AWS fio benchmark comparison between
+            Amazon EBS gp2 and gp3.
+        </p>
+
+        {% if workload %}
+
+        <div class="requirements">
+
+            <h3>Current Workload Requirements</h3>
+
+            <div class="requirements-grid">
+
+                <div class="requirement-item">
+
+                    <span class="requirement-label">
+                        Workload
+                    </span>
+
+                    <span class="requirement-value">
+                        {{ workload | title }}
+                    </span>
+
+                </div>
+
+                <div class="requirement-item">
+
+                    <span class="requirement-label">
+                        Required IOPS
+                    </span>
+
+                    <span class="requirement-value">
+                        {{ required_iops }}
+                    </span>
+
+                </div>
+
+                <div class="requirement-item">
+
+                    <span class="requirement-label">
+                        Required Throughput
+                    </span>
+
+                    <span class="requirement-value">
+                        {{ required_throughput }} MiB/s
+                    </span>
+
+                </div>
+
+                <div class="requirement-item">
+
+                    <span class="requirement-label">
+                        Latency Sensitivity
+                    </span>
+
+                    <span class="requirement-value">
+                        {{ latency_sensitivity | title }}
+                    </span>
+
+                </div>
+
+                <div class="requirement-item">
+
+                    <span class="requirement-label">
+                        Capacity
+                    </span>
+
+                    <span class="requirement-value">
+                        {{ capacity_gib }} GiB
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        {% endif %}
+
+    </div>
+
+
+    {% if selected_benchmark_data %}
+
+
+    <!-- ====================================================== -->
+    <!-- RANDOM WORKLOAD -->
+    <!-- ====================================================== -->
+
+    {% if workload == "random" %}
+
+    {% set read = selected_benchmark_data["random_read"] %}
+    {% set write = selected_benchmark_data["random_write"] %}
+
+    <!-- RANDOM IOPS -->
+
+    <div class="card">
+
+        <h2>Random I/O — IOPS</h2>
+
+        <p class="section-description">
+            Measured random read and random write performance.
+        </p>
+
+        <div class="table-wrapper">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+                        <th>Workload</th>
+                        <th>gp2 IOPS</th>
+                        <th>gp3 IOPS</th>
+                        <th>Difference</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    <tr>
+
+                        <td class="volume">
+                            Random Read
+                        </td>
+
+                        <td class="gp2">
+                            {{ read.gp2.iops }}
+                        </td>
+
+                        <td class="gp3">
+                            {{ read.gp3.iops }}
+                        </td>
+
+                        <td>
+                            {{ read.gp3.iops - read.gp2.iops }}
+                        </td>
+
+                    </tr>
+
+                    <tr>
+
+                        <td class="volume">
+                            Random Write
+                        </td>
+
+                        <td class="gp2">
+                            {{ write.gp2.iops }}
+                        </td>
+
+                        <td class="gp3">
+                            {{ write.gp3.iops }}
+                        </td>
+
+                        <td>
+                            {{ write.gp3.iops - write.gp2.iops }}
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+    <!-- RANDOM THROUGHPUT -->
+
+    <div class="card">
+
+        <h2>Random I/O — Throughput</h2>
+
+        <div class="table-wrapper">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+                        <th>Workload</th>
+                        <th>gp2 MiB/s</th>
+                        <th>gp3 MiB/s</th>
+                        <th>Difference</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    <tr>
+
+                        <td class="volume">
+                            Random Read
+                        </td>
+
+                        <td class="gp2">
+                            {{ read.gp2.throughput_mib_s }}
+                        </td>
+
+                        <td class="gp3">
+                            {{ read.gp3.throughput_mib_s }}
+                        </td>
+
+                        <td>
+                            {{ read.gp3.throughput_mib_s - read.gp2.throughput_mib_s }}
+                        </td>
+
+                    </tr>
+
+                    <tr>
+
+                        <td class="volume">
+                            Random Write
+                        </td>
+
+                        <td class="gp2">
+                            {{ write.gp2.throughput_mib_s }}
+                        </td>
+
+                        <td class="gp3">
+                            {{ write.gp3.throughput_mib_s }}
+                        </td>
+
+                        <td>
+                            {{ write.gp3.throughput_mib_s - write.gp2.throughput_mib_s }}
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+    <!-- RANDOM LATENCY -->
+
+    <div class="card">
+
+        <h2>Random I/O — Average Latency</h2>
+
+        <div class="table-wrapper">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+                        <th>Workload</th>
+                        <th>gp2 Avg Latency</th>
+                        <th>gp3 Avg Latency</th>
+                        <th>Difference</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    <tr>
+
+                        <td class="volume">
+                            Random Read
+                        </td>
+
+                        <td class="gp2">
+                            {{ read.gp2.avg_latency_ms }} ms
+                        </td>
+
+                        <td class="gp3">
+                            {{ read.gp3.avg_latency_ms }} ms
+                        </td>
+
+                        <td>
+                            {{ (read.gp3.avg_latency_ms - read.gp2.avg_latency_ms) | round(3) }} ms
+                        </td>
+
+                    </tr>
+
+                    <tr>
+
+                        <td class="volume">
+                            Random Write
+                        </td>
+
+                        <td class="gp2">
+                            {{ write.gp2.avg_latency_ms }} ms
+                        </td>
+
+                        <td class="gp3">
+                            {{ write.gp3.avg_latency_ms }} ms
+                        </td>
+
+                        <td>
+                            {{ (write.gp3.avg_latency_ms - write.gp2.avg_latency_ms) | round(3) }} ms
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+    <!-- RANDOM P95 -->
+
+    <div class="card">
+
+        <h2>Random I/O — P95 Latency</h2>
+
+        <div class="table-wrapper">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+                        <th>Workload</th>
+                        <th>gp2 P95</th>
+                        <th>gp3 P95</th>
+                        <th>Difference</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    <tr>
+
+                        <td class="volume">
+                            Random Read
+                        </td>
+
+                        <td class="gp2">
+                            {{ read.gp2.p95_ms }} ms
+                        </td>
+
+                        <td class="gp3">
+                            {{ read.gp3.p95_ms }} ms
+                        </td>
+
+                        <td>
+                            {{ (read.gp3.p95_ms - read.gp2.p95_ms) | round(3) }} ms
+                        </td>
+
+                    </tr>
+
+                    <tr>
+
+                        <td class="volume">
+                            Random Write
+                        </td>
+
+                        <td class="gp2">
+                            {{ write.gp2.p95_ms }} ms
+                        </td>
+
+                        <td class="gp3">
+                            {{ write.gp3.p95_ms }} ms
+                        </td>
+
+                        <td>
+                            {{ (write.gp3.p95_ms - write.gp2.p95_ms) | round(3) }} ms
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+    <!-- RANDOM P99 -->
+
+    <div class="card">
+
+        <h2>Random I/O — P99 Latency</h2>
+
+        <div class="table-wrapper">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+                        <th>Workload</th>
+                        <th>gp2 P99</th>
+                        <th>gp3 P99</th>
+                        <th>Difference</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    <tr>
+
+                        <td class="volume">
+                            Random Read
+                        </td>
+
+                        <td class="gp2">
+                            {{ read.gp2.p99_ms }} ms
+                        </td>
+
+                        <td class="gp3">
+                            {{ read.gp3.p99_ms }} ms
+                        </td>
+
+                        <td>
+                            {{ (read.gp3.p99_ms - read.gp2.p99_ms) | round(3) }} ms
+                        </td>
+
+                    </tr>
+
+                    <tr>
+
+                        <td class="volume">
+                            Random Write
+                        </td>
+
+                        <td class="gp2">
+                            {{ write.gp2.p99_ms }} ms
+                        </td>
+
+                        <td class="gp3">
+                            {{ write.gp3.p99_ms }} ms
+                        </td>
+
+                        <td>
+                            {{ (write.gp3.p99_ms - write.gp2.p99_ms) | round(3) }} ms
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+    {% endif %}
+
+
+    <!-- ====================================================== -->
+    <!-- SEQUENTIAL WORKLOAD -->
+    <!-- ====================================================== -->
+
+    {% if workload == "sequential" %}
+
+    {% set read = selected_benchmark_data["sequential_read"] %}
+    {% set write = selected_benchmark_data["sequential_write"] %}
+
+    <!-- SEQUENTIAL IOPS -->
+
+    <div class="card">
+
+        <h2>Sequential I/O — IOPS</h2>
+
+        <p class="section-description">
+            Measured sequential read and sequential write performance.
+        </p>
+
+        <div class="table-wrapper">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+                        <th>Workload</th>
+                        <th>gp2 IOPS</th>
+                        <th>gp3 IOPS</th>
+                        <th>Difference</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    <tr>
+
+                        <td class="volume">
+                            Sequential Read
+                        </td>
+
+                        <td class="gp2">
+                            {{ read.gp2.iops }}
+                        </td>
+
+                        <td class="gp3">
+                            {{ read.gp3.iops }}
+                        </td>
+
+                        <td>
+                            {{ read.gp3.iops - read.gp2.iops }}
+                        </td>
+
+                    </tr>
+
+                    <tr>
+
+                        <td class="volume">
+                            Sequential Write
+                        </td>
+
+                        <td class="gp2">
+                            {{ write.gp2.iops }}
+                        </td>
+
+                        <td class="gp3">
+                            {{ write.gp3.iops }}
+                        </td>
+
+                        <td>
+                            {{ write.gp3.iops - write.gp2.iops }}
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+    <!-- SEQUENTIAL THROUGHPUT -->
+
+    <div class="card">
+
+        <h2>Sequential I/O — Throughput</h2>
+
+        <div class="table-wrapper">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+                        <th>Workload</th>
+                        <th>gp2 MiB/s</th>
+                        <th>gp3 MiB/s</th>
+                        <th>Difference</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    <tr>
+
+                        <td class="volume">
+                            Sequential Read
+                        </td>
+
+                        <td class="gp2">
+                            {{ read.gp2.throughput_mib_s }}
+                        </td>
+
+                        <td class="gp3">
+                            {{ read.gp3.throughput_mib_s }}
+                        </td>
+
+                        <td>
+                            {{ read.gp3.throughput_mib_s - read.gp2.throughput_mib_s }}
+                        </td>
+
+                    </tr>
+
+                    <tr>
+
+                        <td class="volume">
+                            Sequential Write
+                        </td>
+
+                        <td class="gp2">
+                            {{ write.gp2.throughput_mib_s }}
+                        </td>
+
+                        <td class="gp3">
+                            {{ write.gp3.throughput_mib_s }}
+                        </td>
+
+                        <td>
+                            {{ write.gp3.throughput_mib_s - write.gp2.throughput_mib_s }}
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+    <!-- SEQUENTIAL LATENCY -->
+
+    <div class="card">
+
+        <h2>Sequential I/O — Average Latency</h2>
+
+        <div class="table-wrapper">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+                        <th>Workload</th>
+                        <th>gp2 Avg Latency</th>
+                        <th>gp3 Avg Latency</th>
+                        <th>Difference</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    <tr>
+
+                        <td class="volume">
+                            Sequential Read
+                        </td>
+
+                        <td class="gp2">
+                            {{ read.gp2.avg_latency_ms }} ms
+                        </td>
+
+                        <td class="gp3">
+                            {{ read.gp3.avg_latency_ms }} ms
+                        </td>
+
+                        <td>
+                            {{ (read.gp3.avg_latency_ms - read.gp2.avg_latency_ms) | round(3) }} ms
+                        </td>
+
+                    </tr>
+
+                    <tr>
+
+                        <td class="volume">
+                            Sequential Write
+                        </td>
+
+                        <td class="gp2">
+                            {{ write.gp2.avg_latency_ms }} ms
+                        </td>
+
+                        <td class="gp3">
+                            {{ write.gp3.avg_latency_ms }} ms
+                        </td>
+
+                        <td>
+                            {{ (write.gp3.avg_latency_ms - write.gp2.avg_latency_ms) | round(3) }} ms
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+    <!-- SEQUENTIAL P95 -->
+
+    <div class="card">
+
+        <h2>Sequential I/O — P95 Latency</h2>
+
+        <div class="table-wrapper">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+                        <th>Workload</th>
+                        <th>gp2 P95</th>
+                        <th>gp3 P95</th>
+                        <th>Difference</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    <tr>
+
+                        <td class="volume">
+                            Sequential Read
+                        </td>
+
+                        <td class="gp2">
+                            {{ read.gp2.p95_ms }} ms
+                        </td>
+
+                        <td class="gp3">
+                            {{ read.gp3.p95_ms }} ms
+                        </td>
+
+                        <td>
+                            {{ (read.gp3.p95_ms - read.gp2.p95_ms) | round(3) }} ms
+                        </td>
+
+                    </tr>
+
+                    <tr>
+
+                        <td class="volume">
+                            Sequential Write
+                        </td>
+
+                        <td class="gp2">
+                            {{ write.gp2.p95_ms }} ms
+                        </td>
+
+                        <td class="gp3">
+                            {{ write.gp3.p95_ms }} ms
+                        </td>
+
+                        <td>
+                            {{ (write.gp3.p95_ms - write.gp2.p95_ms) | round(3) }} ms
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+    <!-- SEQUENTIAL P99 -->
+
+    <div class="card">
+
+        <h2>Sequential I/O — P99 Latency</h2>
+
+        <div class="table-wrapper">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+                        <th>Workload</th>
+                        <th>gp2 P99</th>
+                        <th>gp3 P99</th>
+                        <th>Difference</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    <tr>
+
+                        <td class="volume">
+                            Sequential Read
+                        </td>
+
+                        <td class="gp2">
+                            {{ read.gp2.p99_ms }} ms
+                        </td>
+
+                        <td class="gp3">
+                            {{ read.gp3.p99_ms }} ms
+                        </td>
+
+                        <td>
+                            {{ (read.gp3.p99_ms - read.gp2.p99_ms) | round(3) }} ms
+                        </td>
+
+                    </tr>
+
+                    <tr>
+
+                        <td class="volume">
+                            Sequential Write
+                        </td>
+
+                        <td class="gp2">
+                            {{ write.gp2.p99_ms }} ms
+                        </td>
+
+                        <td class="gp3">
+                            {{ write.gp3.p99_ms }} ms
+                        </td>
+
+                        <td>
+                            {{ (write.gp3.p99_ms - write.gp2.p99_ms) | round(3) }} ms
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+    {% endif %}
+
+
+    <!-- ====================================================== -->
+    <!-- MIXED WORKLOAD -->
+    <!-- ====================================================== -->
+
+    {% if workload == "mixed" %}
+
+    {% set mixed = selected_benchmark_data["mixed_70_30"] %}
+
+    <div class="card">
+
+        <h2>Mixed 70/30 Workload</h2>
+
+        <p class="section-description">
+            Measured workload using 70% reads and 30% writes.
+        </p>
+
+        <div class="mixed-note">
+            The current benchmark knowledge base stores read/write
+            IOPS, throughput and average latency for this workload.
+            Mixed P95/P99 values are not currently stored.
+        </div>
+
+        <div class="table-wrapper">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+                        <th>Metric</th>
+                        <th>gp2</th>
+                        <th>gp3</th>
+                        <th>Difference</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    <tr>
+
+                        <td class="volume">
+                            Read IOPS
+                        </td>
+
+                        <td class="gp2">
+                            {{ mixed.gp2.read_iops }}
+                        </td>
+
+                        <td class="gp3">
+                            {{ mixed.gp3.read_iops }}
+                        </td>
+
+                        <td>
+                            {{ mixed.gp3.read_iops - mixed.gp2.read_iops }}
+                        </td>
+
+                    </tr>
+
+                    <tr>
+
+                        <td class="volume">
+                            Write IOPS
+                        </td>
+
+                        <td class="gp2">
+                            {{ mixed.gp2.write_iops }}
+                        </td>
+
+                        <td class="gp3">
+                            {{ mixed.gp3.write_iops }}
+                        </td>
+
+                        <td>
+                            {{ mixed.gp3.write_iops - mixed.gp2.write_iops }}
+                        </td>
+
+                    </tr>
+
+                    <tr>
+
+                        <td class="volume">
+                            Total IOPS
+                        </td>
+
+                        <td class="gp2">
+                            {{ mixed.gp2.total_iops }}
+                        </td>
+
+                        <td class="gp3">
+                            {{ mixed.gp3.total_iops }}
+                        </td>
+
+                        <td>
+                            {{ mixed.gp3.total_iops - mixed.gp2.total_iops }}
+                        </td>
+
+                    </tr>
+
+                    <tr>
+
+                        <td class="volume">
+                            Read Throughput
+                        </td>
+
+                        <td class="gp2">
+                            {{ mixed.gp2.read_throughput_mib_s }} MiB/s
+                        </td>
+
+                        <td class="gp3">
+                            {{ mixed.gp3.read_throughput_mib_s }} MiB/s
+                        </td>
+
+                        <td>
+                            {{
+                                (mixed.gp3.read_throughput_mib_s
+                                - mixed.gp2.read_throughput_mib_s)
+                                | round(2)
+                            }}
+                            MiB/s
+                        </td>
+
+                    </tr>
+
+                    <tr>
+
+                        <td class="volume">
+                            Write Throughput
+                        </td>
+
+                        <td class="gp2">
+                            {{ mixed.gp2.write_throughput_mib_s }} MiB/s
+                        </td>
+
+                        <td class="gp3">
+                            {{ mixed.gp3.write_throughput_mib_s }} MiB/s
+                        </td>
+
+                        <td>
+                            {{
+                                (mixed.gp3.write_throughput_mib_s
+                                - mixed.gp2.write_throughput_mib_s)
+                                | round(2)
+                            }}
+                            MiB/s
+                        </td>
+
+                    </tr>
+
+                    <tr>
+
+                        <td class="volume">
+                            Read Average Latency
+                        </td>
+
+                        <td class="gp2">
+                            {{ mixed.gp2.read_avg_latency_ms }} ms
+                        </td>
+
+                        <td class="gp3">
+                            {{ mixed.gp3.read_avg_latency_ms }} ms
+                        </td>
+
+                        <td>
+                            {{
+                                (mixed.gp3.read_avg_latency_ms
+                                - mixed.gp2.read_avg_latency_ms)
+                                | round(3)
+                            }}
+                            ms
+                        </td>
+
+                    </tr>
+
+                    <tr>
+
+                        <td class="volume">
+                            Write Average Latency
+                        </td>
+
+                        <td class="gp2">
+                            {{ mixed.gp2.write_avg_latency_ms }} ms
+                        </td>
+
+                        <td class="gp3">
+                            {{ mixed.gp3.write_avg_latency_ms }} ms
+                        </td>
+
+                        <td>
+                            {{
+                                (mixed.gp3.write_avg_latency_ms
+                                - mixed.gp2.write_avg_latency_ms)
+                                | round(3)
+                            }}
+                            ms
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+    {% endif %}
+
+
+    <!-- ====================================================== -->
+    <!-- BENCHMARK ENVIRONMENT -->
+    <!-- ====================================================== -->
+
+    <div class="card environment-card">
+
+        <h2>Benchmark Environment</h2>
+
+        <p class="section-description">
+            These measurements were collected in a controlled AWS
+            benchmark environment.
+        </p>
+
+        <table>
+
+            <tbody>
+
+                <tr>
+                    <td class="volume">Instance</td>
+                    <td>t3.micro</td>
+                </tr>
+
+                <tr>
+                    <td class="volume">Region</td>
+                    <td>ap-south-1</td>
+                </tr>
+
+                <tr>
+                    <td class="volume">Availability Zone</td>
+                    <td>ap-south-1b</td>
+                </tr>
+
+                <tr>
+                    <td class="volume">Volume Size</td>
+                    <td>20 GiB</td>
+                </tr>
+
+                <tr>
+                    <td class="volume">Filesystem</td>
+                    <td>ext4</td>
+                </tr>
+
+                <tr>
+                    <td class="volume">Benchmark Engine</td>
+                    <td>fio</td>
+                </tr>
+
+                <tr>
+                    <td class="volume">Runtime</td>
+                    <td>30 seconds per run</td>
+                </tr>
+
+                <tr>
+                    <td class="volume">Runs per Workload</td>
+                    <td>3</td>
+                </tr>
+
+            </tbody>
+
+        </table>
+
+        <p class="note">
+            Benchmark results describe observations from this controlled
+            environment. They should not be interpreted as universal
+            maximum performance values for the EBS volume types.
+        </p>
+
+    </div>
+
+
+    {% else %}
+
+
+    <!-- NO DATA -->
+
+    <div class="card">
+
+        <h2>No Benchmark Workload Selected</h2>
+
+        <p>
+            Please return to the recommendation system, submit workload
+            requirements, and then open the benchmark analysis.
+        </p>
+
+    </div>
+
+    {% endif %}
+
+
+</div>
+
+</body>
+</html>
